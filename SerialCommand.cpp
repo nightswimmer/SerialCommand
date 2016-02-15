@@ -33,7 +33,7 @@ SerialCommand::SerialCommand()
     term('\n'),           // default terminator for commands, newline character
     last(NULL)
 {
-  strcpy(delim, " "); // strtok_r needs a null-terminated string
+  strcpy(delim, ";"); // strtok_r needs a null-terminated string
   clearBuffer();
 }
 
@@ -44,9 +44,9 @@ SerialCommand::SerialCommand()
  */
 void SerialCommand::addCommand(const char *command, void (*function)()) {
   #ifdef SERIALCOMMAND_DEBUG
-    Serial.print("Adding command (");
+    Serial.print(F("Adding command ("));
     Serial.print(commandCount);
-    Serial.print("): ");
+    Serial.print(F("): "));
     Serial.println(command);
   #endif
 
@@ -70,16 +70,16 @@ void SerialCommand::setDefaultHandler(void (*function)(const char *)) {
  * When the terminator character (default '\n') is seen, it starts parsing the
  * buffer for a prefix command, and calls handlers setup by addCommand() member
  */
-void SerialCommand::readSerial() {
-  while (Serial.available() > 0) {
-    char inChar = Serial.read();   // Read single available character, there may be more waiting
+void SerialCommand::readSerial(HardwareSerial * serial) {
+  while (serial->available() > 0) {
+    char inChar = serial->read();   // Read single available character, there may be more waiting
     #ifdef SERIALCOMMAND_DEBUG
       Serial.print(inChar);   // Echo back to serial stream
     #endif
 
     if (inChar == term) {     // Check for the terminator (default '\r') meaning end of command
       #ifdef SERIALCOMMAND_DEBUG
-        Serial.print("Received: ");
+        Serial.print(F("Received: "));
         Serial.println(buffer);
       #endif
 
@@ -88,17 +88,17 @@ void SerialCommand::readSerial() {
         boolean matched = false;
         for (int i = 0; i < commandCount; i++) {
           #ifdef SERIALCOMMAND_DEBUG
-            Serial.print("Comparing [");
+            Serial.print(F("Comparing ["));
             Serial.print(command);
-            Serial.print("] to [");
+            Serial.print(F("] to ["));
             Serial.print(commandList[i].command);
-            Serial.println("]");
+            Serial.println(']');
           #endif
 
           // Compare the found command against the list of known commands for a match
-          if (strncmp(command, commandList[i].command, SERIALCOMMAND_MAXCOMMANDLENGTH) == 0) {
+          if (strncasecmp(command, commandList[i].command, SERIALCOMMAND_MAXCOMMANDLENGTH) == 0) {
             #ifdef SERIALCOMMAND_DEBUG
-              Serial.print("Matched Command: ");
+              Serial.print(F("Matched Command: "));
               Serial.println(command);
             #endif
 
@@ -120,7 +120,7 @@ void SerialCommand::readSerial() {
         buffer[bufPos] = '\0';      // Null terminate
       } else {
         #ifdef SERIALCOMMAND_DEBUG
-          Serial.println("Line buffer is full - increase SERIALCOMMAND_BUFFER");
+          Serial.println(F("Line buffer is full - increase SERIALCOMMAND_BUFFER"));
         #endif
       }
     }

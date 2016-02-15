@@ -24,7 +24,7 @@ void setup() {
 }
 
 void loop() {
-  sCmd.readSerial();     // We don't do much, just process serial commands
+  sCmd.readSerial(&Serial);     // We don't do much, just process serial commands
 }
 
 
